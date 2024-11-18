@@ -32,7 +32,7 @@ public class CommentService {
         User user = User.fromAuthUser(authUser);
 
         Todo todo = todoRepository.findById(todoId).orElseThrow(() ->
-                new InvalidRequestException("Todo not found"));
+                new InvalidRequestException(400, "BAD_REQUEST", "Todo not found"));
 
         // 새로운 Comment 객체 생성
         Comment newComment = new Comment(
