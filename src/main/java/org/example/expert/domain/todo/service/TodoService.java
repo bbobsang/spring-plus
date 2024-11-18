@@ -3,7 +3,6 @@ package org.example.expert.domain.todo.service;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.dto.AuthUser;
-import org.springframework.transaction.annotation.Transactional;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.todo.dto.request.TodoSaveRequest;
 import org.example.expert.domain.todo.dto.response.TodoResponse;
@@ -16,9 +15,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
 
 @Service
 @RequiredArgsConstructor
@@ -53,19 +52,28 @@ public class TodoService {
     public Page<TodoResponse> getTodos(int page, int size, String weather, LocalDateTime startDate, LocalDateTime endDate) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        // TodoRepository에서 Page<Todo>를 가져옴
-        Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
-
-        // Page<Todo>를 Page<TodoResponse>로 변환
-        return todos.map(todo -> new TodoResponse(
-                todo.getId(),
-                todo.getTitle(),
-                todo.getContents(),
-                todo.getWeather(),
-                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
-                todo.getCreatedAt(),
-                todo.getModifiedAt()
-        ));
+        // 날씨 조건이 있다면
+        if (weather != null && !weather.isEmpty()) {
+            if (startDate != null && endDate != null) {
+                // 날씨와 기간 모두 있는 경우
+                return todoRepository.findByWeatherAndModifiedAtBetween(weather, startDate, endDate, pageable)
+                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+            } else {
+                // 날씨만 있는 경우
+                return todoRepository.findByWeather(weather, pageable)
+                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+            }
+        } else {
+            if (startDate != null && endDate != null) {
+                // 기간만 있는 경우
+                return todoRepository.findByModifiedAtBetween(startDate, endDate, pageable)
+                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+            } else {
+                // 아무 조건도 없는 경우
+                return todoRepository.findAllByOrderByModifiedAtDesc(pageable)
+                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+            }
+        }
     }
 
     public TodoResponse getTodo(long todoId) {
@@ -80,6 +88,18 @@ public class TodoService {
                 todo.getContents(),
                 todo.getWeather(),
                 new UserResponse(user.getId(), user.getEmail()),
+                todo.getCreatedAt(),
+                todo.getModifiedAt()
+        );
+    }
+
+    private TodoResponse convertToTodoResponse(Todo todo) {
+        return new TodoResponse(
+                todo.getId(),
+                todo.getTitle(),
+                todo.getContents(),
+                todo.getWeather(),
+                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
                 todo.getCreatedAt(),
                 todo.getModifiedAt()
         );
