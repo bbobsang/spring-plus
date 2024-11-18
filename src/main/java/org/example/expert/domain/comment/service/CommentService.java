@@ -28,26 +28,32 @@ public class CommentService {
 
     @Transactional
     public CommentSaveResponse saveComment(AuthUser authUser, long todoId, CommentSaveRequest commentSaveRequest) {
+
         User user = User.fromAuthUser(authUser);
+
         Todo todo = todoRepository.findById(todoId).orElseThrow(() ->
                 new InvalidRequestException("Todo not found"));
 
+        // 새로운 Comment 객체 생성
         Comment newComment = new Comment(
                 commentSaveRequest.getContents(),
                 user,
                 todo
         );
 
+        // 새로운 댓글을 저장
         Comment savedComment = commentRepository.save(newComment);
 
+        // 저장된 댓글 정보를 반환하는 Response 생성
         return new CommentSaveResponse(
                 savedComment.getId(),
                 savedComment.getContents(),
-                new UserResponse(user.getId(), user.getEmail())
+                new UserResponse(user.getId(), user.getEmail())  // 댓글 작성자의 정보 반환
         );
     }
 
     public List<CommentResponse> getComments(long todoId) {
+
         List<Comment> commentList = commentRepository.findByTodoIdWithUser(todoId);
 
         List<CommentResponse> dtoList = new ArrayList<>();
