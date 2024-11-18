@@ -12,6 +12,9 @@ public class TodoSaveRequest {
 
     @NotBlank
     private String title;
+
     @NotBlank
     private String contents;
+
+    private String weather;  // 날씨 필드 추가
 }
