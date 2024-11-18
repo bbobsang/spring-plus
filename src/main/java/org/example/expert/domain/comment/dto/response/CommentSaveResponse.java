@@ -6,13 +6,15 @@ import org.example.expert.domain.user.dto.response.UserResponse;
 @Getter
 public class CommentSaveResponse {
 
-    private final Long id;
-    private final String contents;
-    private final UserResponse user;
+    private Long id;
+    private String content;
+    private Long todoId;
+    private UserResponse userResponse;
 
-    public CommentSaveResponse(Long id, String contents, UserResponse user) {
+    public CommentSaveResponse(Long id, String content, Long todoId, UserResponse userResponse) {
         this.id = id;
-        this.contents = contents;
-        this.user = user;
+        this.content = content;
+        this.todoId = todoId;
+        this.userResponse = userResponse;
     }
 }
