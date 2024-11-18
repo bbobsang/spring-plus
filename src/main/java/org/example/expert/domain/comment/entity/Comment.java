@@ -3,7 +3,6 @@ package org.example.expert.domain.comment.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.expert.domain.common.entity.Timestamped;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.user.entity.User;
 
@@ -11,23 +10,24 @@ import org.example.expert.domain.user.entity.User;
 @Entity
 @NoArgsConstructor
 @Table(name = "comments")
-public class Comment extends Timestamped {
+public class Comment {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String contents;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "todo_id", nullable = false)
-    private Todo todo;
+    private Todo todo;  // 해당 댓글이 속한 Todo
 
-    public Comment(String contents, User user, Todo todo) {
-        this.contents = contents;
-        this.user = user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;  // 댓글을 작성한 User
+
+    public Comment(String content, Todo todo, User user) {
+        this.content = content;
         this.todo = todo;
+        this.user = user;
     }
 }
