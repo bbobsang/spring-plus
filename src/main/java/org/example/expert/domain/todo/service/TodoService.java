@@ -30,7 +30,14 @@ public class TodoService {
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
         User user = User.fromAuthUser(authUser);
 
-        String weather = weatherClient.getTodayWeather();
+        // 날씨 정보를 가져오는 부분에서 예외처리 추가
+        String weather = "Unknown"; // 기본값 설정
+        try {
+            weather = weatherClient.getTodayWeather();
+        } catch (Exception e) {
+            // 날씨 API 호출 실패 시 기본 값 사용
+            // 로그 기록도 가능
+        }
 
         Todo newTodo = new Todo(
                 todoSaveRequest.getTitle(),
@@ -50,6 +57,9 @@ public class TodoService {
     }
 
     public Page<TodoResponse> getTodos(int page, int size, String weather, LocalDateTime startDate, LocalDateTime endDate) {
+        if (page < 1) {
+            page = 1; // page가 1 미만이면 기본값 1로 설정
+        }
         Pageable pageable = PageRequest.of(page - 1, size);
 
         // 날씨 조건이 있다면

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,15 +26,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TodoControllerTest {
 
     @InjectMocks
-    private TodoController todoController;
+    private TodoController todoController; // Controller에 Mock 객체 주입
 
     @Mock
-    private TodoService todoService;
+    private TodoService todoService; // Service 클래스 Mock
 
     private MockMvc mockMvc;
 
     @BeforeEach
     public void setup() {
+        // Mockito 초기화
+        MockitoAnnotations.initMocks(this);
+
+        // MockMvc 설정
         mockMvc = MockMvcBuilders.standaloneSetup(todoController).build();
     }
 
@@ -41,11 +46,13 @@ public class TodoControllerTest {
     public void todo_단건_조회_시_todo가_존재하지_않아_예외가_발생한다() throws Exception {
         long todoId = 1L;
 
+        // TodoService의 getTodo 메서드가 예외를 던지도록 mock 설정
         when(todoService.getTodo(todoId))
                 .thenThrow(new InvalidRequestException("Todo not found"));
 
+        // 테스트 수행
         mockMvc.perform(get("/todos/" + todoId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound()); // 404 상태 코드 확인
     }
 
     @Test
@@ -56,6 +63,7 @@ public class TodoControllerTest {
         TodoResponse todoResponse = new TodoResponse(1L, "Todo title", "Todo contents", "Sunny", new UserResponse(1L, "email"), LocalDateTime.now(), LocalDateTime.now());
         Page<TodoResponse> todoPage = new PageImpl<>(Collections.singletonList(todoResponse), pageable, 1);
 
+        // When: TodoService의 getTodos 메서드가 호출되면 todoPage를 반환하도록 설정
         when(todoService.getTodos(1, 10, null, null, null)).thenReturn(todoPage);
 
         // When: /todos 요청을 보냄
@@ -74,8 +82,10 @@ public class TodoControllerTest {
         TodoResponse todoResponse = new TodoResponse(1L, "Todo title", "Todo contents", weather, new UserResponse(1L, "email"), LocalDateTime.now(), LocalDateTime.now());
         Page<TodoResponse> todoPage = new PageImpl<>(Collections.singletonList(todoResponse), pageable, 1);
 
+        // When: TodoService의 getTodos 메서드가 호출되면 todoPage를 반환하도록 설정
         when(todoService.getTodos(1, 10, weather, null, null)).thenReturn(todoPage);
 
+        // When: 날씨 파라미터와 함께 /todos 요청을 보냄
         mockMvc.perform(get("/todos")
                         .param("page", "1")
                         .param("size", "10")
@@ -95,6 +105,7 @@ public class TodoControllerTest {
 
         when(todoService.getTodos(1, 10, null, startDate, endDate)).thenReturn(todoPage);
 
+        // When: 기간 파라미터와 함께 /todos 요청을 보냄
         mockMvc.perform(get("/todos")
                         .param("page", "1")
                         .param("size", "10")
