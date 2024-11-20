@@ -3,6 +3,7 @@ package org.example.expert.domain.manager.service;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.InvalidRequestException;
+import org.example.expert.domain.log.service.LogService; // LogService 추가
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
 import org.example.expert.domain.manager.dto.response.ManagerSaveResponse;
@@ -28,6 +29,7 @@ public class ManagerService {
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
     private final TodoRepository todoRepository;
+    private final LogService logService;  // LogService 주입
 
     @Transactional
     public ManagerSaveResponse saveManager(AuthUser authUser, long todoId, ManagerSaveRequest managerSaveRequest) {
@@ -49,6 +51,10 @@ public class ManagerService {
 
         Manager newManagerUser = new Manager(managerUser, todo);
         Manager savedManagerUser = managerRepository.save(newManagerUser);
+
+        // 로그 기록
+        logService.logAction("Manager Registration",
+                "Manager with ID " + savedManagerUser.getId() + " registered successfully for Todo with ID " + todoId);
 
         return new ManagerSaveResponse(
                 savedManagerUser.getId(),
@@ -92,5 +98,9 @@ public class ManagerService {
         }
 
         managerRepository.delete(manager);
+
+        // 로그 기록
+        logService.logAction("Manager Deletion",
+                "Manager with ID " + manager.getId() + " deleted from Todo with ID " + todoId);
     }
 }
