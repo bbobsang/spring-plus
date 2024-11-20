@@ -1,5 +1,7 @@
 package org.example.expert.domain.todo.service;
 
+
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.dto.AuthUser;
@@ -15,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -36,7 +37,8 @@ public class TodoService {
             weather = weatherClient.getTodayWeather();
         } catch (Exception e) {
             // 날씨 API 호출 실패 시 기본 값 사용
-            // 로그 기록도 가능
+            // 로그 기록 가능
+            System.err.println("Failed to get weather: " + e.getMessage());
         }
 
         Todo newTodo = new Todo(
@@ -62,26 +64,21 @@ public class TodoService {
         }
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        // 날씨 조건이 있다면
         if (weather != null && !weather.isEmpty()) {
             if (startDate != null && endDate != null) {
-                // 날씨와 기간 모두 있는 경우
                 return todoRepository.findByWeatherAndModifiedAtBetween(weather, startDate, endDate, pageable)
-                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+                        .map(this::convertToTodoResponse);
             } else {
-                // 날씨만 있는 경우
                 return todoRepository.findByWeather(weather, pageable)
-                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+                        .map(this::convertToTodoResponse);
             }
         } else {
             if (startDate != null && endDate != null) {
-                // 기간만 있는 경우
                 return todoRepository.findByModifiedAtBetween(startDate, endDate, pageable)
-                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+                        .map(this::convertToTodoResponse);
             } else {
-                // 아무 조건도 없는 경우
                 return todoRepository.findAllByOrderByModifiedAtDesc(pageable)
-                        .map(this::convertToTodoResponse);  // 변환 메소드 추가
+                        .map(this::convertToTodoResponse);
             }
         }
     }

@@ -52,6 +52,11 @@ dependencies {
     tasks.named('test') {
         useJUnitPlatform() // JUnit Platform 사용
     }
+
+    bootJar {
+        archiveFileName = 'spring-plus.jar'  // 출력될 JAR 파일 이름
+        mainClass = 'org.example.expert.ExpertApplication'  // 메인 클래스 경로 설정
+    }
 }
 def querydslSrcDir = 'src/main/generated'
 clean {
@@ -60,3 +65,4 @@ clean {
 tasks.withType(JavaCompile) {
     options.generatedSourceOutputDirectory = file(querydslSrcDir)
 }
+
