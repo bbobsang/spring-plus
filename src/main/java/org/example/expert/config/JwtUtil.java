@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,9 +13,10 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Value("${jwt.secret.key}")
+    private String SECRET_KEY;
 
-    private final String SECRET_KEY = "secret";  //
+    private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     // JWT 토큰 생성
     public String createToken(
@@ -37,8 +39,9 @@ public class JwtUtil {
 
     // 토큰에서 클레임 추출
     public Claims extractClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+        return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -48,7 +51,17 @@ public class JwtUtil {
         try {
             extractClaims(token);  // 유효성 검사
             return true;
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            // 만료된 토큰
+            return false;
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            // 지원되지 않는 토큰
+            return false;
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            // 잘못된 토큰
+            return false;
         } catch (Exception e) {
+            // 그 외의 예외
             return false;
         }
     }
